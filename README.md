@@ -105,7 +105,7 @@ Musai can be self-hosted in modular fashion.
 ### Quick Start:
 
 ```bash
-git clone https://github.com/YOUR-FORK/musai.git
+git clone https://github.com/Musai/musai.git
 cd musai
 python setup.py  # Coming soon
 ```
@@ -124,4 +124,4 @@ Musai is adapted from the original Suna project and restructured under the Apach
 
 See [LICENSE](./LICENSE) for full terms.
 
-> Forked from [kortix-ai/suna](https://github.com/kortix-ai/suna) with modular adaptations, rebranding, and reimagined philosophy by [@CodeMusai](https://github.com/your-profile).
+> Forked from [kortix-ai/suna](https://github.com/kortix-ai/suna) with modular adaptations, rebranding, and reimagined philosophy by [@CodeMusic](https://github.com/CodeMusic).
