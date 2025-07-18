@@ -105,7 +105,7 @@ Musai can be self-hosted in modular fashion.
 ### Quick Start:
 
 ```bash
-git clone https://github.com/YOUR-FORK/musai.git
+git clone https://github.com/Musai/musai.git
 cd musai
 python setup.py  # Coming soon
 ```
