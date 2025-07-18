@@ -1,11 +1,11 @@
 export const siteConfig = {
-  name: 'Kortix Suna',
-  url: 'https://suna.so/',
-  description: 'Kortix AI',
+  name: 'Musai',
+  url: 'https://musai.dev/',
+  description: 'The Modular Muse Within - Reflective AI for Recursive Minds',
   links: {
-    twitter: 'https://x.com/kortixai',
-    github: 'https://github.com/kortix-ai/',
-    linkedin: 'https://www.linkedin.com/company/kortix/',
+    twitter: 'https://x.com/codemusic',
+    github: 'https://github.com/CodeMusic/Musai',
+    linkedin: 'https://www.linkedin.com/company/codemusicconstruction',
   },
 };
 

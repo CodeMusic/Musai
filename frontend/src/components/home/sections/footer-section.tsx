@@ -20,10 +20,10 @@ export function FooterSection() {
   }, []);
 
   const logoSrc = !mounted
-    ? '/kortix-logo.svg'
+    ? '/Musai.png'
     : resolvedTheme === 'dark'
-      ? '/kortix-logo-white.svg'
-      : '/kortix-logo.svg';
+      ? '/wtMusai.png'
+      : '/Musai.png';
 
   return (
     <footer id="footer" className="w-full pb-0">
@@ -32,7 +32,7 @@ export function FooterSection() {
           <Link href="/" className="flex items-center gap-2">
             <Image
               src={logoSrc}
-              alt="Kortix Logo"
+              alt="Musai Logo"
               width={122}
               height={22}
               priority
@@ -44,7 +44,7 @@ export function FooterSection() {
 
           <div className="flex items-center gap-4">
             <a
-              href="https://github.com/kortix-ai/suna"
+              href="https://github.com/CodeMusic/musai"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="GitHub"

@@ -76,7 +76,7 @@ export const AgentSelector: React.FC<AgentSelectorProps> = ({
       name: 'Suna',
       description: 'Your personal AI assistant',
       type: 'default' as const,
-      icon: <Image src="/kortix-symbol.svg" alt="Suna" width={16} height={16} className="h-4 w-4 dark:invert" />
+      icon: <Image src="/Musai.png" alt="Musai" width={16} height={16} className="h-4 w-4" />
     },
     ...PREDEFINED_AGENTS.map(agent => ({
       ...agent,

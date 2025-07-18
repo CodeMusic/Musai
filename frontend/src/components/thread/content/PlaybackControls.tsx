@@ -424,8 +424,8 @@ export const PlaybackControls = ({
               <div className="flex items-center justify-center w-6 h-6 rounded-md overflow-hidden bg-primary/10">
                 <Link href="/">
                   <img
-                    src="/kortix-symbol.svg"
-                    alt="Kortix"
+                    src="/Musai.png"
+                    alt="Musai"
                     width={16}
                     height={16}
                     className="object-contain"

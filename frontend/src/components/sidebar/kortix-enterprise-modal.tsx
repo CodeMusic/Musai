@@ -41,10 +41,10 @@ export function KortixProcessModal() {
             <div className="relative z-10 flex flex-col h-full">
               <div className="mb-8 mt-0 flex-shrink-0">
                 <Image
-                  src={
-                    isDarkMode ? '/kortix-logo-white.svg' : '/kortix-logo.svg'
-                  }
-                  alt="Kortix Logo"
+                        src={
+        isDarkMode ? '/wtMusai.png' : '/Musai.png'
+      }
+      alt="Musai Logo"
                   width={60}
                   height={21}
                   className="h-6 w-auto"

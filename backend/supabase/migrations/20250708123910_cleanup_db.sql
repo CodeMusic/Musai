@@ -71,8 +71,65 @@ ALTER TABLE agent_versions ADD COLUMN IF NOT EXISTS previous_version_id UUID REF
 
 DROP TABLE IF EXISTS agent_version_history CASCADE;
 
-ALTER TABLE agent_triggers ADD COLUMN IF NOT EXISTS execution_type VARCHAR(50) DEFAULT 'agent' CHECK (execution_type IN ('agent', 'workflow'));
-ALTER TABLE agent_triggers ADD COLUMN IF NOT EXISTS workflow_id UUID REFERENCES agent_workflows(id) ON DELETE SET NULL;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_type WHERE typname = 'agent_trigger_type'
+  ) THEN
+    CREATE TYPE agent_trigger_type AS ENUM ('phrase', 'event', 'schedule', 'api', 'other');
+  END IF;
+END$$;
+
+
+
+CREATE TABLE IF NOT EXISTS agent_triggers (
+    trigger_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    agent_id UUID NOT NULL REFERENCES agents(agent_id) ON DELETE CASCADE,
+    trigger_type agent_trigger_type NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    config JSONB NOT NULL DEFAULT '{}'::jsonb,
+    execution_type VARCHAR(50) DEFAULT 'agent'
+        CHECK (execution_type IN ('agent', 'workflow')),
+    workflow_id UUID REFERENCES agent_workflows(id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+
+
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT FROM information_schema.tables 
+    WHERE table_schema = 'public' AND table_name = 'agent_triggers'
+  ) THEN
+    BEGIN
+      ALTER TABLE agent_triggers 
+        ADD COLUMN IF NOT EXISTS execution_type VARCHAR(50) DEFAULT 'agent'
+        CHECK (execution_type IN ('agent', 'workflow'));
+
+      ALTER TABLE agent_triggers 
+        ADD COLUMN IF NOT EXISTS workflow_id UUID 
+        REFERENCES agent_workflows(id) ON DELETE SET NULL;
+    END;
+  END IF;
+END$$;
+
+-- Create table if missing
+CREATE TABLE IF NOT EXISTS trigger_events (
+    event_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    trigger_id UUID NOT NULL REFERENCES agent_triggers(trigger_id) ON DELETE CASCADE,
+    agent_id UUID NOT NULL REFERENCES agents(agent_id) ON DELETE CASCADE,
+    trigger_type agent_trigger_type NOT NULL,
+    timestamp TIMESTAMPTZ DEFAULT NOW(),
+    success BOOLEAN NOT NULL,
+    should_execute_agent BOOLEAN DEFAULT FALSE,
+    error_message TEXT,
+    metadata JSONB DEFAULT '{}'::jsonb
+);
 
 ALTER TABLE trigger_events ADD COLUMN IF NOT EXISTS workflow_execution_id UUID REFERENCES workflow_executions(id) ON DELETE SET NULL;
 

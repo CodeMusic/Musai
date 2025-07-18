@@ -57,17 +57,17 @@ export interface PricingTier {
 }
 
 export const siteConfig = {
-  name: 'Kortix Suna',
-  description: 'The Generalist AI Agent that can act on your behalf.',
-  cta: 'Start Free',
+  name: 'Musai',
+  description: 'The Modular Muse Within - Reflective AI for Recursive Minds',
+  cta: 'Launch Your Muse',
   url: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
-  keywords: ['AI Agent', 'Generalist AI', 'Open Source AI', 'Autonomous Agent'],
+  keywords: ['AI Agent', 'Modular AI', 'Open Source AI', 'Reflective AI', 'Digital Muse'],
   links: {
-    email: 'support@kortix.ai',
-    twitter: 'https://x.com/kortixai',
-    discord: 'https://discord.gg/kortixai',
-    github: 'https://github.com/Kortix-ai/Suna',
-    instagram: 'https://instagram.com/kortixai',
+    email: 'themusicofthecode@gmail.com',
+    twitter: 'https://x.com/codemusic',
+    discord: 'https://discord.gg/musai',
+    github: 'https://github.com/CodeMusic/Musai',
+    instagram: 'https://instagram.com/codemusic',
   },
   nav: {
     links: [
@@ -105,11 +105,11 @@ export const siteConfig = {
       </svg>
     ),
     badge: '100% OPEN SOURCE',
-    githubUrl: 'https://github.com/kortix-ai/suna',
-    title: 'Suna, the AI Employee.',
+    githubUrl: 'https://github.com/CodeMusic/musai',
+    title: 'Musai, the Modular Muse Within.',
     description:
-      'Suna by Kortix – is a generalist AI Agent that acts on your behalf.',
-    inputPlaceholder: 'Ask Suna to...',
+      'Your adaptive digital muse — bridging raw data and emergent insight through reflective AI for recursive minds.',
+    inputPlaceholder: 'Ask Musai to...',
   },
   cloudPricingItems: [
     {
@@ -232,7 +232,7 @@ export const siteConfig = {
         '$400 AI token credits/month',
         'Private projects',
         'Premium AI Models',
-        'Full Suna AI access',
+        'Full Musai AI access',
         'Community support',
         'Custom integrations',
         'Dedicated account manager',
@@ -257,7 +257,7 @@ export const siteConfig = {
         '$800 AI token credits/month',
         'Private projects',
         'Premium AI Models',
-        'Full Suna AI access',
+        'Full Musai AI access',
         'Community support',
         'Custom integrations',
         'Dedicated account manager',
@@ -283,7 +283,7 @@ export const siteConfig = {
         '$1000 AI token credits/month',
         'Private projects',
         'Premium AI Models',
-        'Full Suna AI access',
+        'Full Musai AI access',
         'Priority support',
         'Custom integrations',
         'Dedicated account manager',
@@ -498,62 +498,62 @@ export const siteConfig = {
     ],
   },
   featureSection: {
-    title: 'How Kortix Suna Works',
+    title: 'How Musai Works',
     description:
-      'Discover how Kortix Suna transforms your commands into action in four easy steps',
+      'Discover how Musai guides you through the four phases of reflective AI: Dream, Reflect, Refine, and Realize',
     items: [
       {
         id: 1,
-        title: 'Request an Action',
+        title: 'Dream - Creative Expansion',
         content:
-          'Speak or type your command—let Kortix Suna capture your intent. Your request instantly sets the process in motion.',
+          'Share your ideas and watch Musai expand them with creative possibilities. Your muse captures intent and generates new pathways for exploration.',
         image:
           'https://images.unsplash.com/photo-1720371300677-ba4838fa0678?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
       },
       {
         id: 2,
-        title: 'AI Understanding & Planning',
+        title: 'Reflect - Memory & Feedback',
         content:
-          'Suna analyzes your request, understands the context, and develops a structured plan to complete the task efficiently.',
+          'Musai analyzes patterns, learns from memory, and provides recursive feedback loops to deepen understanding and improve outcomes.',
         image:
           'https://images.unsplash.com/photo-1686170287433-c95faf6d3608?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwzfHx8ZW58MHx8fHx8fA%3D%3D',
       },
       {
         id: 3,
-        title: 'Autonomous Execution',
+        title: 'Refine - Iterative Improvement',
         content:
-          'Using its capabilities and integrations, Suna executes the task independently, handling any complexities along the way.',
+          'Through conversational iteration and content transformation, Musai refines ideas into polished, actionable solutions.',
         image:
           'https://images.unsplash.com/photo-1720378042271-60aff1e1c538?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwxMHx8fGVufDB8fHx8fA%3D%3D',
       },
       {
         id: 4,
-        title: 'Results & Learning',
+        title: 'Realize - Execute & Deliver',
         content:
-          'Suna delivers results and learns from each interaction, continuously improving its performance to better serve your needs.',
+          'Musai transforms insights into tangible deliverables, executing automation tasks and bringing your vision to reality.',
         image:
           'https://images.unsplash.com/photo-1666882990322-e7f3b8df4f75?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1yZWxhdGVkfDF8fHxlbnwwfHx8fHw%3D',
       },
     ],
   },
   bentoSection: {
-    title: 'Empower Your Workflow with Kortix Suna',
+    title: 'Empower Your Mind with Musai',
     description:
-      'Let Kortix Suna act on your behalf with advanced AI capabilities, seamless integrations, and autonomous task execution.',
+      'Let Musai be your modular muse—combining reflective intelligence, seamless integrations, and recursive learning to amplify your creative and analytical capabilities.',
     items: [
       {
         id: 1,
         content: <FirstBentoAnimation />,
         title: 'Autonomous Task Execution',
         description:
-          'Experience true automation with Suna. Ask your AI Agent to complete tasks, research information, and handle complex workflows with minimal supervision.',
+          'Experience true automation with Musai. Ask your AI muse to complete tasks, research information, and handle complex workflows with minimal supervision.',
       },
       {
         id: 2,
         content: <SecondBentoAnimation />,
         title: 'Seamless Integrations',
         description:
-          'Connect Suna to your existing tools for a unified workflow. Boost productivity through AI-powered interconnected systems.',
+          'Connect Musai to your existing tools for a unified workflow. Boost productivity through AI-powered interconnected systems.',
       },
       {
         id: 3,
@@ -567,21 +567,21 @@ export const siteConfig = {
         ),
         title: 'Intelligent Data Analysis',
         description:
-          "Transform raw data into actionable insights in seconds. Make better decisions with Suna's real-time, adaptive intelligence.",
+          "Transform raw data into actionable insights in seconds. Make better decisions with Musai's real-time, adaptive intelligence.",
       },
       {
         id: 4,
         content: <FourthBentoAnimation once={false} />,
         title: 'Complete Customization',
         description:
-          'Tailor Suna to your specific needs. As an open source solution, you have full control over its capabilities, integrations, and implementation.',
+          'Tailor Musai to your specific needs. As an open source solution, you have full control over its capabilities, integrations, and implementation.',
       },
     ],
   },
   benefits: [
     {
       id: 1,
-      text: "Automate everyday tasks with Suna's powerful AI capabilities.",
+      text: "Automate everyday tasks with Musai's powerful AI capabilities.",
       image: '/Device-6.png',
     },
     {
@@ -591,7 +591,7 @@ export const siteConfig = {
     },
     {
       id: 3,
-      text: 'Improve focus on high-value work as Suna handles the routine.',
+      text: 'Improve focus on high-value work as Musai handles the routine.',
       image: '/Device-8.png',
     },
     {
@@ -897,13 +897,13 @@ export const siteConfig = {
 
         title: 'Community Powered',
         description:
-          "Join a thriving community of developers and users continuously enhancing and expanding Suna's capabilities.",
+          "Join a thriving community of developers and users continuously enhancing and expanding Musai's capabilities.",
       },
     ],
   },
   quoteSection: {
     quote:
-      'Kortix Suna has transformed how we approach everyday tasks. The level of automation it provides, combined with its open source nature, makes it an invaluable tool for our entire organization.',
+      'Musai has transformed how we approach everyday tasks. The level of reflective automation it provides, combined with its open source nature, makes it an invaluable tool for our entire organization.',
     author: {
       name: 'Alex Johnson',
       role: 'CTO, Innovatech',
@@ -913,7 +913,7 @@ export const siteConfig = {
   pricing: {
     title: 'Open Source & Free Forever',
     description:
-      'Kortix Suna is 100% open source and free to use. No hidden fees, no premium features locked behind paywalls.',
+      'Musai is 100% open source and free to use. No hidden fees, no premium features locked behind paywalls.',
     pricingItems: [
       {
         name: 'Community',
@@ -928,7 +928,7 @@ export const siteConfig = {
           'Community support',
         ],
         description: 'Perfect for individual users and developers',
-        buttonText: 'Hire Suna',
+        buttonText: 'Launch Musai',
         buttonColor: 'bg-accent text-primary',
         isPopular: false,
       },
@@ -1178,7 +1178,7 @@ export const siteConfig = {
   faqSection: {
     title: 'Frequently Asked Questions',
     description:
-      "Answers to common questions about Kortix Suna and its capabilities. If you have any other questions, please don't hesitate to contact us.",
+      "Answers to common questions about Musai and its capabilities. If you have any other questions, please don't hesitate to contact us.",
     faQitems: [
       {
         id: 1,
@@ -1188,53 +1188,53 @@ export const siteConfig = {
       },
       {
         id: 2,
-        question: 'How does Kortix Suna work?',
+        question: 'How does Musai work?',
         answer:
-          'Kortix Suna works by analyzing your requirements, leveraging advanced AI algorithms to understand context, and executing tasks based on your instructions. It can integrate with your workflow, learn from feedback, and continuously improve its performance.',
+          'Musai works through four phases: Dream (creative expansion), Reflect (memory and feedback), Refine (iterative improvement), and Realize (execution and delivery). It uses modular AI components to provide reflective intelligence for recursive minds.',
       },
       {
         id: 3,
-        question: 'Is Kortix Suna really free?',
+        question: 'Is Musai really free?',
         answer:
-          'Yes, Kortix Suna is completely free and open source. We believe in democratizing AI technology and making it accessible to everyone. You can use it, modify it, and contribute to its development without any cost.',
+          'Yes, Musai is completely free and open source. We believe in democratizing AI technology and making reflective intelligence accessible to everyone. You can use it, modify it, and contribute to its development without any cost.',
       },
       {
         id: 4,
-        question: 'Can I integrate Suna with my existing tools?',
+        question: 'Can I integrate Musai with my existing tools?',
         answer:
-          'Yes, Kortix Suna is designed to be highly compatible with popular tools and platforms. We offer APIs and pre-built integrations for seamless connection with your existing workflow tools and systems.',
+          'Yes, Musai is designed to be highly compatible with popular tools and platforms. We offer APIs and pre-built integrations for seamless connection with your existing workflow tools and systems.',
       },
       {
         id: 5,
-        question: 'How can I contribute to Kortix Suna?',
+        question: 'How can I contribute to Musai?',
         answer:
-          'You can contribute to Kortix Suna by submitting pull requests on GitHub, reporting bugs, suggesting new features, or helping with documentation. Join our Discord community to connect with other contributors and Hire Suna.',
+          'You can contribute to Musai by submitting pull requests on GitHub, reporting bugs, suggesting new features, or helping with documentation. Join our Discord community to connect with other contributors and Launch Musai.',
       },
       {
         id: 6,
-        question: 'How does Kortix Suna save me time?',
+        question: 'How does Musai save me time?',
         answer:
-          'Kortix Suna automates repetitive tasks, streamlines workflows, and provides quick solutions to common challenges. This automation and efficiency can save hours of manual work, allowing you to focus on more strategic activities.',
+          'Musai automates repetitive tasks, streamlines workflows, and provides quick solutions to common challenges through reflective AI. This automation and efficiency can save hours of manual work, allowing you to focus on more strategic and creative activities.',
       },
     ],
   },
   ctaSection: {
     id: 'cta',
-    title: 'Start Using Kortix Suna Today',
+    title: 'Start Using Musai Today',
     backgroundImage: '/holo.png',
     button: {
-      text: 'Get Started for free',
+      text: 'Launch Your Muse',
       href: '/auth',
     },
-    subtext: 'The generalist AI Agent that acts on your behalf',
+    subtext: 'The modular muse that guides your reflective mind',
   },
   footerLinks: [
     {
-      title: 'Kortix',
+      title: 'Musai',
       links: [
-        { id: 1, title: 'About', url: 'https://kortix.ai' },
-        { id: 3, title: 'Contact', url: 'mailto:hey@kortix.ai' },
-        { id: 4, title: 'Careers', url: 'https://kortix.ai/careers' },
+        { id: 1, title: 'About', url: 'https://musai.dev/about' },
+        { id: 3, title: 'Contact', url: 'mailto:hello@musai.dev' },
+        { id: 4, title: 'RoverByte', url: '/roverbyte' },
       ],
     },
     {
@@ -1243,10 +1243,10 @@ export const siteConfig = {
         {
           id: 5,
           title: 'Documentation',
-          url: 'https://github.com/Kortix-ai/Suna',
+          url: 'https://github.com/Musai/musai',
         },
-        { id: 7, title: 'Discord', url: 'https://discord.gg/Py6pCBUUPw' },
-        { id: 8, title: 'GitHub', url: 'https://github.com/Kortix-ai/Suna' },
+        { id: 7, title: 'Discord', url: 'https://discord.gg/musai' },
+        { id: 8, title: 'GitHub', url: 'https://github.com/Musai/musai' },
       ],
     },
     {
@@ -1255,17 +1255,17 @@ export const siteConfig = {
         {
           id: 9,
           title: 'Privacy Policy',
-          url: 'https://suna.so/legal?tab=privacy',
+          url: 'https://musai.dev/legal?tab=privacy',
         },
         {
           id: 10,
           title: 'Terms of Service',
-          url: 'https://suna.so/legal?tab=terms',
+          url: 'https://musai.dev/legal?tab=terms',
         },
         {
           id: 11,
           title: 'License Apache 2.0',
-          url: 'https://github.com/Kortix-ai/Suna/blob/main/LICENSE',
+          url: 'https://github.com/Musai/musai/blob/main/LICENSE',
         },
       ],
     },
@@ -1611,7 +1611,7 @@ export const siteConfig = {
       id: 'seo-analysis',
       title: 'SEO Analysis',
       description:
-        "Based on my website suna.so, generate an SEO report analysis, find top-ranking pages by keyword clusters, and identify topics I'm missing.",
+        "Based on my website musai.dev, generate an SEO report analysis, find top-ranking pages by keyword clusters, and identify topics I'm missing.",
       category: 'marketing',
       featured: true,
       icon: (

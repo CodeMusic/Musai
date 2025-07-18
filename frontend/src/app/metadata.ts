@@ -4,14 +4,14 @@ import { siteConfig } from '@/lib/site';
 export const metadata: Metadata = {
   title: siteConfig.name,
   description: siteConfig.description,
-  keywords: ['Kortix Suna', 'AI', 'Agent'],
+  keywords: ['Musai', 'AI', 'Agent', 'Modular AI', 'Reflective AI', 'Digital Muse'],
   authors: [
     {
-      name: 'Kortix AI Corp',
-      url: 'https://kortix.ai',
+      name: 'Musai Team',
+      url: 'https://codemusic.ca',
     },
   ],
-  creator: 'Kortix AI Corp',
+  creator: 'Musai Team',
   openGraph: {
     type: 'website',
     locale: 'en_US',
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: siteConfig.name,
     description: siteConfig.description,
-    creator: '@kortixai',
+    creator: '@musaidev',
   },
   robots: {
     index: true,

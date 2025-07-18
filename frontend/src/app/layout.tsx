@@ -31,10 +31,12 @@ export const metadata: Metadata = {
     template: `%s - ${siteConfig.name}`,
   },
   description:
-    'Suna is a fully open source AI assistant that helps you accomplish real-world tasks with ease. Through natural conversation, Suna becomes your digital companion for research, data analysis, and everyday challenges.',
+    'Musai is your modular, reflective, open-source AI system—designed to act as your personal muse, guiding you through research, reflection, refinement, and realization. A fork of Suna, built for recursive minds.',
   keywords: [
     'AI',
     'artificial intelligence',
+    'modular AI',
+    'reflective AI',
     'browser automation',
     'web scraping',
     'file management',
@@ -42,14 +44,15 @@ export const metadata: Metadata = {
     'open source',
     'research',
     'data analysis',
+    'digital muse',
   ],
-  authors: [{ name: 'Kortix Team', url: 'https://suna.so' }],
+  authors: [{ name: 'Musai Team', url: 'https://musai.dev' }],
   creator:
-    'Kortix Team - Adam Cohen Hillel, Marko Kraemer, Domenico Gagliardi, and Quoc Dat Le',
+    'Musai Team - Building on the foundation of Suna',
   publisher:
-    'Kortix Team - Adam Cohen Hillel, Marko Kraemer, Domenico Gagliardi, and Quoc Dat Le',
+    'Musai Team - Open Source AI for Recursive Minds',
   category: 'Technology',
-  applicationName: 'Suna',
+  applicationName: 'Musai',
   formatDetection: {
     telephone: false,
     email: false,
@@ -64,17 +67,17 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: 'Suna - Open Source Generalist AI Agent',
+    title: 'Musai - The Modular Muse Within',
     description:
-      'Suna is a fully open source AI assistant that helps you accomplish real-world tasks with ease through natural conversation.',
+      'Musai is your modular, reflective, open-source AI system designed to act as your personal muse, guiding you through research, reflection, refinement, and realization.',
     url: siteConfig.url,
-    siteName: 'Suna',
+    siteName: 'Musai',
     images: [
       {
         url: '/banner.png',
         width: 1200,
         height: 630,
-        alt: 'Suna - Open Source Generalist AI Agent',
+        alt: 'Musai - The Modular Muse Within',
         type: 'image/png',
       },
     ],
@@ -83,17 +86,17 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Suna - Open Source Generalist AI Agent',
+    title: 'Musai - The Modular Muse Within',
     description:
-      'Suna is a fully open source AI assistant that helps you accomplish real-world tasks with ease through natural conversation.',
-    creator: '@kortixai',
-    site: '@kortixai',
+      'Musai is your modular, reflective, open-source AI system designed to act as your personal muse for research, reflection, and realization.',
+    creator: '@musaidev',
+    site: '@musaidev',
     images: [
       {
         url: '/banner.png',
         width: 1200,
         height: 630,
-        alt: 'Suna - Open Source Generalist AI Agent',
+        alt: 'Musai - The Modular Muse Within',
       },
     ],
   },
