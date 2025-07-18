@@ -124,4 +124,4 @@ Musai is adapted from the original Suna project and restructured under the Apach
 
 See [LICENSE](./LICENSE) for full terms.
 
-> Forked from [kortix-ai/suna](https://github.com/kortix-ai/suna) with modular adaptations, rebranding, and reimagined philosophy by [@CodeMusai](https://github.com/your-profile).
+> Forked from [kortix-ai/suna](https://github.com/kortix-ai/suna) with modular adaptations, rebranding, and reimagined philosophy by [@CodeMusic](https://github.com/CodeMusic).
