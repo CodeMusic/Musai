@@ -9,8 +9,14 @@ from app.agent.react import ReActAgent
 from app.exceptions import TokenLimitExceeded
 from app.logger import logger
 from app.prompt.toolcall import NEXT_STEP_PROMPT, SYSTEM_PROMPT
-from app.schema import (TOOL_CHOICE_TYPE, AgentState, Function, Message,
-                        ToolCall, ToolChoice)
+from app.schema import (
+    TOOL_CHOICE_TYPE,
+    AgentState,
+    Function,
+    Message,
+    ToolCall,
+    ToolChoice,
+)
 from app.tool import CreateChatCompletion, Terminate, ToolCollection
 
 TOOL_CALL_REQUIRED = "Tool calls required but none provided"
@@ -234,11 +240,15 @@ class ToolCallAgent(ReActAgent):
 
     async def think(self) -> bool:
         """Process current state and decide next actions using tools"""
+        logger.info(f"🧠 Starting think process for step {self.current_step}...")
+
         if self.next_step_prompt:
+            logger.info("📝 Adding next step prompt to messages...")
             user_msg = Message.user_message(self.next_step_prompt)
             self.messages += [user_msg]
 
         try:
+            logger.info("🤖 Calling LLM with tool options...")
             # Get response with tool options
             response = await self.llm.ask_tool(
                 messages=self.messages,
@@ -250,9 +260,12 @@ class ToolCallAgent(ReActAgent):
                 tools=self.available_tools.to_params(),
                 tool_choice=self.tool_choices,
             )
+            logger.info("✅ LLM response received successfully")
         except ValueError:
+            logger.error("❌ LLM call failed with ValueError")
             raise
         except Exception as e:
+            logger.error(f"❌ LLM call failed with exception: {str(e)}")
             # Check if this is a RetryError containing TokenLimitExceeded
             if hasattr(e, "__cause__") and isinstance(e.__cause__, TokenLimitExceeded):
                 token_limit_error = e.__cause__
@@ -268,6 +281,7 @@ class ToolCallAgent(ReActAgent):
                 return False
             raise
 
+        logger.info("🔍 Processing LLM response...")
         self.tool_calls = tool_calls = (
             response.tool_calls if response and response.tool_calls else []
         )
@@ -275,6 +289,7 @@ class ToolCallAgent(ReActAgent):
 
         # Fallback: If no tool_calls but content contains tool call information
         if not tool_calls and content and self.tool_choices != ToolChoice.NONE:
+            logger.info("🔄 Attempting fallback tool call parsing...")
             parsed_tool_calls = self._parse_tool_calls_from_content(content)
             if parsed_tool_calls:
                 self.tool_calls = tool_calls = parsed_tool_calls
@@ -295,6 +310,7 @@ class ToolCallAgent(ReActAgent):
 
         try:
             if response is None:
+                logger.error("❌ No response received from the LLM")
                 raise RuntimeError("No response received from the LLM")
 
             # Handle different tool_choices modes
@@ -305,24 +321,39 @@ class ToolCallAgent(ReActAgent):
                     )
                 if content:
                     self.memory.add_message(Message.assistant_message(content))
+                    logger.info("✅ Added content message to memory")
                     return True
+                logger.warning("⚠️ No content and no tools available")
                 return False
 
             # Create and add assistant message
+            logger.info("📝 Creating assistant message...")
             assistant_msg = (
                 Message.from_tool_calls(content=content, tool_calls=self.tool_calls)
                 if self.tool_calls
                 else Message.assistant_message(content)
             )
             self.memory.add_message(assistant_msg)
+            logger.info(
+                f"💾 Added assistant message to memory (total: {len(self.memory.messages)})"
+            )
 
             if self.tool_choices == ToolChoice.REQUIRED and not self.tool_calls:
+                logger.info(
+                    "🔄 Tool choice is REQUIRED but no tools selected - continuing"
+                )
                 return True  # Will be handled in act()
 
             # For 'auto' mode, continue with content if no commands but content exists
             if self.tool_choices == ToolChoice.AUTO and not self.tool_calls:
+                logger.info(
+                    f"🔄 Auto mode with no tools - continuing with content: {bool(content)}"
+                )
                 return bool(content)
 
+            logger.info(
+                f"✅ Think process completed - returning {bool(self.tool_calls)}"
+            )
             return bool(self.tool_calls)
         except Exception as e:
             logger.error(f"🚨 Oops! The {self.name}'s thinking process hit a snag: {e}")
@@ -367,6 +398,57 @@ class ToolCallAgent(ReActAgent):
             results.append(result)
 
         return "\n\n".join(results)
+
+    async def step(self) -> str:
+        """Execute a single step in the agent's workflow."""
+        logger.info(f"🔍 Starting ToolCallAgent step {self.current_step}...")
+
+        # Check if we should continue
+        if not await self.think():
+            logger.info("🤔 Agent decided to stop thinking - finishing execution")
+            self.state = AgentState.FINISHED
+            return "Agent finished execution"
+
+        # Get the latest message
+        if not self.memory.messages:
+            logger.warning("⚠️ No messages in memory - cannot proceed")
+            return "No messages to process"
+
+        latest_message = self.memory.messages[-1]
+        logger.info(f"📝 Processing latest message: {latest_message.role}")
+
+        # Check if the message has tool calls
+        if not latest_message.tool_calls:
+            logger.info("💬 No tool calls in message - returning content")
+            return latest_message.content or "No content"
+
+        # Execute tool calls
+        logger.info(
+            f"🔧 Found {len(latest_message.tool_calls)} tool call(s) to execute"
+        )
+
+        results = []
+        for i, tool_call in enumerate(latest_message.tool_calls):
+            logger.info(
+                f"🔧 Executing tool call {i+1}/{len(latest_message.tool_calls)}: {tool_call.function.name}"
+            )
+
+            try:
+                result = await self.execute_tool(tool_call)
+                results.append(result)
+                logger.info(f"✅ Tool call {i+1} completed successfully")
+            except Exception as e:
+                error_msg = f"Tool call {i+1} failed: {str(e)}"
+                logger.error(f"❌ {error_msg}")
+                results.append(f"Error: {error_msg}")
+
+        # Combine results
+        combined_result = "\n".join(results)
+        logger.info(
+            f"📋 Step {self.current_step} completed with {len(results)} tool call results"
+        )
+
+        return combined_result
 
     async def execute_tool(self, command: ToolCall) -> str:
         """Execute a single tool call with robust error handling"""
@@ -438,45 +520,3 @@ class ToolCallAgent(ReActAgent):
             error_msg = f"Tool '{name}' execution failed: {str(e)}"
             logger.error(f"❌ {error_msg}")
             return f"Error: {error_msg}"
-
-    async def _handle_special_tool(self, name: str, result: Any, **kwargs):
-        """Handle special tool execution and state changes"""
-        if not self._is_special_tool(name):
-            return
-
-        if self._should_finish_execution(name=name, result=result, **kwargs):
-            # Set agent state to finished
-            logger.info(f"🏁 Special tool '{name}' has completed the task!")
-            self.state = AgentState.FINISHED
-
-    @staticmethod
-    def _should_finish_execution(**kwargs) -> bool:
-        """Determine if tool execution should finish the agent"""
-        return True
-
-    def _is_special_tool(self, name: str) -> bool:
-        """Check if tool name is in special tools list"""
-        return name.lower() in [n.lower() for n in self.special_tool_names]
-
-    async def cleanup(self):
-        """Clean up resources used by the agent's tools."""
-        logger.info(f"🧹 Cleaning up resources for agent '{self.name}'...")
-        for tool_name, tool_instance in self.available_tools.tool_map.items():
-            if hasattr(tool_instance, "cleanup") and asyncio.iscoroutinefunction(
-                tool_instance.cleanup
-            ):
-                try:
-                    logger.debug(f"🧼 Cleaning up tool: {tool_name}")
-                    await tool_instance.cleanup()
-                except Exception as e:
-                    logger.error(
-                        f"🚨 Error cleaning up tool '{tool_name}': {e}", exc_info=True
-                    )
-        logger.info(f"✨ Cleanup complete for agent '{self.name}'.")
-
-    async def run(self, request: Optional[str] = None) -> str:
-        """Run the agent with cleanup when done."""
-        try:
-            return await super().run(request)
-        finally:
-            await self.cleanup()

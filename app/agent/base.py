@@ -1,3 +1,4 @@
+import time
 from abc import ABC, abstractmethod
 from contextlib import asynccontextmanager
 from typing import List, Optional
@@ -166,7 +167,23 @@ class BaseAgent(BaseModel, ABC):
                 logger.info(
                     f"🔄 {agent_context} - Executing step {self.current_step}/{self.max_steps}{task_context}"
                 )
-                step_result = await self.step()
+
+                # Add detailed step execution logging
+                logger.info(f"⏱️ Starting step {self.current_step} execution...")
+                step_start_time = time.time()
+
+                try:
+                    step_result = await self.step()
+                    step_elapsed = time.time() - step_start_time
+                    logger.info(
+                        f"✅ Step {self.current_step} completed in {step_elapsed:.2f} seconds"
+                    )
+                except Exception as e:
+                    step_elapsed = time.time() - step_start_time
+                    logger.error(
+                        f"❌ Step {self.current_step} failed after {step_elapsed:.2f} seconds: {str(e)}"
+                    )
+                    raise
 
                 # Check for stuck state
                 if self.is_stuck():
