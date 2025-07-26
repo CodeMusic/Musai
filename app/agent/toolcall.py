@@ -250,7 +250,7 @@ class ToolCallAgent(ReActAgent):
         try:
             logger.info("🤖 Calling LLM with tool options...")
             # Get response with tool options
-            response = await self.llm.ask_tool(
+            response = await self.llm.ask_tool_original(
                 messages=self.messages,
                 system_msgs=(
                     [Message.system_message(self.system_prompt)]

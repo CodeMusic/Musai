@@ -70,7 +70,6 @@ class PlanningTool(BaseTool):
 
     async def execute(
         self,
-        *,
         command: Literal[
             "create", "update", "list", "get", "set_active", "mark_step", "delete"
         ],

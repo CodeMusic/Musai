@@ -30,7 +30,6 @@ from app.schema import (
     Message,
     ToolChoice,
 )
-from app.flow.vision_router import vision_router
 
 REASONING_MODELS = ["o1", "o3-mini"]
 MULTIMODAL_MODELS = [
@@ -495,41 +494,7 @@ class LLM:
             (OpenAIError, Exception, ValueError)
         ),  # Don't retry TokenLimitExceeded
     )
-    async def ask_with_routing(
-        self,
-        messages: List[Union[dict, Message]],
-        system_msgs: Optional[List[Union[dict, Message]]] = None,
-        stream: bool = True,
-        temperature: Optional[float] = None,
-    ) -> str:
-        """Ask the LLM with automatic vision routing."""
-        # Extract message content for routing decision
-        message_content = " ".join([msg.content for msg in messages if msg.content])
-
-        # Determine optimal configuration
-        optimal_config = vision_router.get_optimal_config(message_content)
-
-        # If we need to use a different config, create a new LLM instance
-        if optimal_config != "llm":
-            logger.info(f"🧠 Vision router: Using {optimal_config} for visual content")
-            vision_llm = LLM(config_name="vision")
-            return await vision_llm.ask(messages, system_msgs, stream, temperature)
-
-        # Use default config for text-only content
-        logger.info(f"🧠 Vision router: Using default config for text-only content")
-        return await self.ask_original(messages, system_msgs, stream, temperature)
-
     async def ask(
-        self,
-        messages: List[Union[dict, Message]],
-        system_msgs: Optional[List[Union[dict, Message]]] = None,
-        stream: bool = True,
-        temperature: Optional[float] = None,
-    ) -> str:
-        """Ask the LLM with automatic vision routing."""
-        return await self.ask_with_routing(messages, system_msgs, stream, temperature)
-
-    async def ask_original(
         self,
         messages: List[Union[dict, Message]],
         system_msgs: Optional[List[Union[dict, Message]]] = None,
@@ -675,18 +640,6 @@ class LLM:
         ),  # Don't retry TokenLimitExceeded
     )
     async def ask_with_images(
-        self,
-        message: str,
-        images: List[str],
-        stream: bool = True,
-        temperature: Optional[float] = None,
-    ) -> str:
-        """Ask the LLM with images, always using vision config."""
-        logger.info(f"🖼️ Vision request detected, using vision config")
-        vision_llm = LLM(config_name="vision")
-        return await vision_llm.ask_with_images_original(message, images, stream, temperature)
-
-    async def ask_with_images_original(
         self,
         messages: List[Union[dict, Message]],
         images: List[Union[str, dict]],
@@ -891,27 +844,6 @@ class LLM:
         ),  # Don't retry TokenLimitExceeded
     )
     async def ask_tool(
-        self,
-        message: str,
-        tools: List[dict],
-        stream: bool = True,
-        temperature: Optional[float] = None,
-    ) -> str:
-        """Ask the LLM with tools, with automatic vision routing."""
-        # Determine optimal configuration
-        optimal_config = vision_router.get_optimal_config(message)
-
-        # If we need to use a different config, create a new LLM instance
-        if optimal_config != "llm":
-            logger.info(f"🧠 Vision router: Using {optimal_config} for tool request with visual content")
-            vision_llm = LLM(config_name="vision")
-            return await vision_llm.ask_tool_original(message, tools, stream, temperature)
-
-        # Use default config for text-only content
-        logger.info(f"🧠 Vision router: Using default config for tool request with text-only content")
-        return await self.ask_tool_original(message, tools, stream, temperature)
-
-    async def ask_tool_original(
         self,
         messages: List[Union[dict, Message]],
         system_msgs: Optional[List[Union[dict, Message]]] = None,

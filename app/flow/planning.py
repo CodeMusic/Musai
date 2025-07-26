@@ -2,12 +2,15 @@ import json
 import time
 from enum import Enum
 from typing import Dict, List, Optional, Union
-
+from uuid import uuid4
 from pydantic import Field
 
 from app.agent.base import BaseAgent
 from app.flow.base import BaseFlow
+from app.flow.plan_display import PlanDisplay
+from app.llm_enhanced import EnhancedLLM
 from app.llm import LLM
+from app.config import config
 from app.logger import logger
 from app.schema import AgentState, Message, ToolChoice
 from app.tool import PlanningTool
@@ -118,6 +121,8 @@ class PlanningFlow(BaseFlow):
                     logger.info(
                         f"📋 Plan created successfully with {total_steps} steps"
                     )
+            else:
+                logger.info("📋 Plan called without input")
 
             result = ""
             while True:
@@ -194,8 +199,9 @@ class PlanningFlow(BaseFlow):
             f"Create a reasonable plan with clear steps to accomplish the task: {request}"
         )
 
+
         # Call LLM with PlanningTool
-        response = await self.llm.ask_tool(
+        response = await self.llm.ask_tool_original(
             messages=[user_message],
             system_msgs=[system_message],
             tools=[self.planning_tool.to_param()],
@@ -215,27 +221,112 @@ class PlanningFlow(BaseFlow):
                             logger.error(f"Failed to parse tool arguments: {args}")
                             continue
 
+                    # Debug: Log the arguments being passed
+                    logger.info(f"🔍 Planning tool arguments: {args}")
+
                     # Ensure plan_id is set correctly and execute the tool
                     args["plan_id"] = self.active_plan_id
 
-                    # Execute the tool via ToolCollection instead of directly
-                    result = await self.planning_tool.execute(**args)
+                    # Debug: Log the final arguments
+                    logger.info(f"🔍 Final planning tool arguments: {args}")
 
-                    logger.info(f"Plan creation result: {str(result)}")
+                    try:
+                        # Execute the tool via ToolCollection instead of directly
+                        result = await self.planning_tool.execute(**args)
+                        logger.info(f"Plan creation result: {str(result)}")
+                    except TypeError as e:
+                        logger.error(f"🚨 TypeError calling planning_tool.execute: {e}")
+                        logger.error(f"🚨 Arguments that caused error: {args}")
+                        logger.warning("🛠️ Check if PlanningTool expects different parameter names or structure.")
+                        # Try to create a default plan instead
+                        await self._create_default_plan(request)
+                        return
+
+                    # Display beautiful plan guide after successful creation
+                    await self._display_plan_guide(request)
                     return
 
         # If execution reached here, create a default plan
         logger.warning("Creating default plan")
 
         # Create default plan using the ToolCollection
-        await self.planning_tool.execute(
-            **{
-                "command": "create",
-                "plan_id": self.active_plan_id,
-                "title": f"Plan for: {request[:50]}{'...' if len(request) > 50 else ''}",
-                "steps": ["Analyze request", "Execute task", "Verify results"],
-            }
-        )
+        try:
+            # Ensure we have a valid plan ID
+            if not self.active_plan_id:
+                self.active_plan_id = str(uuid4())
+                logger.warning(f"⚠️ No active_plan_id found. Generated new one: {self.active_plan_id}")
+
+            # Define the plan metadata
+            title = f"Plan for: {request[:50]}{'...' if len(request) > 50 else ''}"
+            steps = ["Analyze request", "Execute task", "Verify results"]
+
+            # Execute tool
+            await self.planning_tool.execute(
+                command="create",
+                plan_id=self.active_plan_id,
+                title=title,
+                steps=steps,
+            )
+
+        except TypeError as e:
+            logger.error(f"🚨 TypeError calling planning_tool.execute: {e}")
+            logger.warning("🛠️ Check if PlanningTool expects different parameter names or structure.")
+            raise
+
+        except Exception as e:
+            logger.exception(f"❌ Unexpected error during plan creation: {e}")
+            raise
+
+        # Display beautiful plan guide after default plan creation
+        await self._display_plan_guide(request)
+
+    async def _create_default_plan(self, request: str) -> None:
+        """Create a default plan when LLM-generated plan fails."""
+        logger.warning("Creating default plan due to LLM plan creation failure")
+
+        try:
+            # Ensure we have a valid plan ID
+            if not self.active_plan_id:
+                self.active_plan_id = str(uuid4())
+                logger.warning(f"⚠️ No active_plan_id found. Generated new one: {self.active_plan_id}")
+
+            # Define the plan metadata
+            title = f"Plan for: {request[:50]}{'...' if len(request) > 50 else ''}"
+            steps = ["Analyze request", "Execute task", "Verify results"]
+
+            # Execute tool
+            await self.planning_tool.execute(
+                command="create",
+                plan_id=self.active_plan_id,
+                title=title,
+                steps=steps,
+            )
+
+            logger.info("✅ Default plan created successfully")
+            await self._display_plan_guide(request)
+
+        except Exception as e:
+            logger.exception(f"❌ Failed to create default plan: {e}")
+            raise
+
+    async def _display_plan_guide(self, original_request: str) -> None:
+        """Display a beautiful program guide showing the original request and plan steps."""
+        try:
+            # Get the current plan data
+            if self.active_plan_id not in self.planning_tool.plans:
+                logger.warning(f"Plan {self.active_plan_id} not found for display")
+                return
+
+            plan_data = self.planning_tool.plans[self.active_plan_id]
+
+            # Create and display the plan guide
+            plan_display = PlanDisplay()
+            plan_display.display_plan_guide(original_request, plan_data)
+
+        except Exception as e:
+            logger.error(f"Error displaying plan guide: {e}")
+            # Fallback to simple logging
+            logger.info(f"Plan created for request: {original_request}")
 
     async def _get_current_step_info(self) -> tuple[Optional[int], Optional[dict]]:
         """
