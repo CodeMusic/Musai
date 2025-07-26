@@ -1,4 +1,5 @@
 import logging
+from typing import Awaitable, Callable
 
 from a2a.server.agent_execution import AgentExecutor, RequestContext
 from a2a.server.events import Event, EventQueue
@@ -10,22 +11,19 @@ from a2a.types import (
     TextPart,
     UnsupportedOperationError,
 )
-from a2a.utils import (
-    completed_task,
-    new_artifact,
-)
-from .agent import A2AManus
+from a2a.utils import completed_task, new_artifact
 from a2a.utils.errors import ServerError
-from typing import Callable, Awaitable
+
+from .agent import A2AMusai
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-class ManusExecutor(AgentExecutor):
+class MusaiExecutor(AgentExecutor):
     """Currency Conversion AgentExecutor Example."""
 
-    def __init__(self, agent_factory: Callable[[], Awaitable[A2AManus]]):
+    def __init__(self, agent_factory: Callable[[], Awaitable[A2AMusai]]):
         self.agent_factory = agent_factory
 
     async def execute(

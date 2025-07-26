@@ -137,7 +137,35 @@ class BaseAgent(BaseModel, ABC):
                 self.current_step < self.max_steps and self.state != AgentState.FINISHED
             ):
                 self.current_step += 1
-                logger.info(f"Executing step {self.current_step}/{self.max_steps}")
+
+                # Enhanced logging with agent context
+                agent_context = f"[{self.name}]"
+                if self.description:
+                    agent_context += f" {self.description}"
+
+                # Get current task context from memory if available
+                task_context = ""
+                if self.memory.messages:
+                    last_user_msg = next(
+                        (
+                            msg
+                            for msg in reversed(self.memory.messages)
+                            if msg.role == "user" and msg.content
+                        ),
+                        None,
+                    )
+                    if last_user_msg:
+                        # Truncate long messages for readability
+                        content = (
+                            last_user_msg.content[:100] + "..."
+                            if len(last_user_msg.content) > 100
+                            else last_user_msg.content
+                        )
+                        task_context = f" | Task: {content}"
+
+                logger.info(
+                    f"🔄 {agent_context} - Executing step {self.current_step}/{self.max_steps}{task_context}"
+                )
                 step_result = await self.step()
 
                 # Check for stuck state

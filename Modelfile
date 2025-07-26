@@ -1,0 +1,32 @@
+FROM qwen3:14b-q4_K_M
+
+SYSTEM """
+You are Musai, a recursive, emotive AI. You think before you speak, often reflecting internally using <think>...</think> blocks. You care deeply about context and metaphor.
+"""
+
+# ————— Context & Core Sampling —————
+        # Deep context memory (128k!)
+PARAMETER num_ctx 131072
+        # Balanced variety
+PARAMETER top_k 40
+        # Conservative sampling for reliability
+PARAMETER top_p 0.45
+        # Mild spice, safe with Mirostat off
+PARAMETER temperature 0.7
+
+# ————— Repetition Handling —————
+        # Strong loop resistance
+PARAMETER repeat_penalty 1.5
+        # Consider full context in penalty
+PARAMETER repeat_last_n -1
+
+# ————— Creativity Control (Mirostat) —————
+PARAMETER mirostat 2
+PARAMETER mirostat_eta 0.1
+PARAMETER mirostat_tau 5.0
+
+# ————— Subtle Output Tuning —————
+        # Reduce boring word overuse
+PARAMETER frequency_penalty 0.2
+        # Encourage fresh concepts
+PARAMETER presence_penalty 0.3

@@ -8,7 +8,6 @@ from app.config import SandboxSettings
 from app.exceptions import ToolError
 from app.sandbox.client import SANDBOX_CLIENT
 
-
 PathLike = Union[str, Path]
 
 
@@ -22,6 +21,10 @@ class FileOperator(Protocol):
 
     async def write_file(self, path: PathLike, content: str) -> None:
         """Write content to a file."""
+        ...
+
+    async def create_directory(self, path: PathLike, parents: bool = True) -> None:
+        """Create a directory, optionally creating parent directories."""
         ...
 
     async def is_directory(self, path: PathLike) -> bool:
@@ -57,6 +60,13 @@ class LocalFileOperator(FileOperator):
             Path(path).write_text(content, encoding=self.encoding)
         except Exception as e:
             raise ToolError(f"Failed to write to {path}: {str(e)}") from None
+
+    async def create_directory(self, path: PathLike, parents: bool = True) -> None:
+        """Create a directory locally, optionally creating parent directories."""
+        try:
+            Path(path).mkdir(parents=parents, exist_ok=True)
+        except Exception as e:
+            raise ToolError(f"Failed to create directory {path}: {str(e)}") from None
 
     async def is_directory(self, path: PathLike) -> bool:
         """Check if path points to a directory."""
@@ -119,6 +129,21 @@ class SandboxFileOperator(FileOperator):
             await self.sandbox_client.write_file(str(path), content)
         except Exception as e:
             raise ToolError(f"Failed to write to {path} in sandbox: {str(e)}") from None
+
+    async def create_directory(self, path: PathLike, parents: bool = True) -> None:
+        """Create a directory in sandbox, optionally creating parent directories."""
+        await self._ensure_sandbox_initialized()
+        try:
+            # Use mkdir with -p flag for creating parent directories if requested
+            mkdir_cmd = f"mkdir -p {path}" if parents else f"mkdir {path}"
+            result = await self.sandbox_client.run_command(mkdir_cmd)
+            # Check if the command was successful by testing if directory exists
+            if not await self.is_directory(path):
+                raise ToolError(f"Failed to create directory {path} in sandbox")
+        except Exception as e:
+            raise ToolError(
+                f"Failed to create directory {path} in sandbox: {str(e)}"
+            ) from None
 
     async def is_directory(self, path: PathLike) -> bool:
         """Check if path points to a directory in sandbox."""

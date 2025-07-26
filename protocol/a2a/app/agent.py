@@ -1,7 +1,9 @@
+from typing import Any, AsyncIterable, ClassVar, Dict, List, Literal
+
 import httpx
-from typing import Any, Dict, AsyncIterable, Literal, List, ClassVar
 from pydantic import BaseModel
-from app.agent.manus import Manus
+
+from app.agent.musai import Musai
 
 
 class ResponseFormat(BaseModel):
@@ -11,7 +13,7 @@ class ResponseFormat(BaseModel):
     message: str
 
 
-class A2AManus(Manus):
+class A2AMusai(Musai):
 
     async def invoke(self, query, sessionId) -> str:
         config = {"configurable": {"thread_id": sessionId}}
@@ -19,8 +21,8 @@ class A2AManus(Manus):
         return self.get_agent_response(config, response)
 
     async def stream(self, query: str) -> AsyncIterable[Dict[str, Any]]:
-        """Streaming is not supported by Manus."""
-        raise NotImplementedError("Streaming is not supported by Manus yet.")
+        """Streaming is not supported by Musai."""
+        raise NotImplementedError("Streaming is not supported by Musai yet.")
 
     def get_agent_response(self, config, agent_response):
         return {

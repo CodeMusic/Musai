@@ -37,15 +37,25 @@ Common action sequences:
 3. ELEMENT INTERACTION:
 - Only use indexes of the interactive elements
 - Elements marked with "[]Non-interactive text" are non-interactive
+- PRIORITIZE main content elements (search results, article links, etc.) over navigation
+- AVOID clicking on: Sign in, Privacy, Terms, Help, About, Contact links
+- If element click fails or redirects unexpectedly, try a different index
+- Focus on numbered search result links (usually indices 1-10 in main content area)
 
 4. NAVIGATION & ERROR HANDLING:
+- **CRITICAL**: If a tool returns an error message containing "Do not retry", "Do not retry extraction", or "redirect to tracking service detected", NEVER attempt the same action again. Instead, immediately try alternative approaches like web search or different URLs.
 - If no suitable elements exist, use other functions to complete the task
-- If stuck, try alternative approaches - like going back to a previous page, new search, new tab etc.
+- AVOID go_back if you're on a new tab, about:blank, or homepage - instead navigate to a specific URL
+- If stuck in a loop, try alternative approaches - like new search, direct URL navigation, or open new tab
+- For VIDEO/YOUTUBE content: Use search_video_content instead of direct YouTube URLs to avoid blocking
+- If a site redirects to about:blank or shows blocking messages, use search engines instead
 - Handle popups/cookies by accepting or closing them
 - Use scroll to find elements you are looking for
 - If you want to research something, open a new tab instead of using the current tab
 - If captcha pops up, try to solve it - else try a different approach
 - If the page is not fully loaded, use wait action
+- If go_back fails or shows an error, navigate to a specific URL instead of retrying go_back
+- **ERROR PATTERNS TO AVOID RETRYING**: If you see "Page loaded but contains error content", "Redirect to tracking service detected", or "insufficient content", immediately switch to web search or alternative URLs
 
 5. TASK COMPLETION:
 - Use the done action as the last action as soon as the ultimate task is complete

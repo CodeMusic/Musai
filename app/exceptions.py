@@ -5,9 +5,9 @@ class ToolError(Exception):
         self.message = message
 
 
-class OpenManusError(Exception):
-    """Base exception for all OpenManus errors"""
+class MusaiError(Exception):
+    """Base exception for all Musai errors"""
 
 
-class TokenLimitExceeded(OpenManusError):
+class TokenLimitExceeded(MusaiError):
     """Exception raised when the token limit is exceeded"""

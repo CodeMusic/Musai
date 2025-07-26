@@ -56,7 +56,12 @@ class MCPClients(ToolCollection):
 
         # Always ensure clean disconnection before new connection
         if server_id in self.sessions:
+            logger.info(f"🔄 Reconnecting to existing MCP server {server_id}...")
             await self.disconnect(server_id)
+
+        logger.info(
+            f"🌐 Establishing SSE connection to {server_url}... (this may take 5-15 seconds)"
+        )
 
         exit_stack = AsyncExitStack()
         self.exit_stacks[server_id] = exit_stack
@@ -66,6 +71,7 @@ class MCPClients(ToolCollection):
         session = await exit_stack.enter_async_context(ClientSession(*streams))
         self.sessions[server_id] = session
 
+        logger.info(f"🔧 Initializing session and listing tools for {server_id}...")
         await self._initialize_and_list_tools(server_id)
 
     async def connect_stdio(
@@ -79,7 +85,12 @@ class MCPClients(ToolCollection):
 
         # Always ensure clean disconnection before new connection
         if server_id in self.sessions:
+            logger.info(f"🔄 Reconnecting to existing MCP server {server_id}...")
             await self.disconnect(server_id)
+
+        logger.info(
+            f"⚡ Starting stdio MCP server with command: {command}... (this may take 5-30 seconds)"
+        )
 
         exit_stack = AsyncExitStack()
         self.exit_stacks[server_id] = exit_stack
@@ -92,6 +103,7 @@ class MCPClients(ToolCollection):
         session = await exit_stack.enter_async_context(ClientSession(read, write))
         self.sessions[server_id] = session
 
+        logger.info(f"🔧 Initializing session and listing tools for {server_id}...")
         await self._initialize_and_list_tools(server_id)
 
     async def _initialize_and_list_tools(self, server_id: str) -> None:
@@ -100,7 +112,10 @@ class MCPClients(ToolCollection):
         if not session:
             raise RuntimeError(f"Session not initialized for server {server_id}")
 
+        logger.info(f"🔧 Initializing MCP session for {server_id}...")
         await session.initialize()
+
+        logger.info(f"📋 Listing available tools from {server_id}...")
         response = await session.list_tools()
 
         # Create proper tool objects for each server tool
@@ -122,7 +137,7 @@ class MCPClients(ToolCollection):
         # Update tools tuple
         self.tools = tuple(self.tool_map.values())
         logger.info(
-            f"Connected to server {server_id} with tools: {[tool.name for tool in response.tools]}"
+            f"✅ Connected to server {server_id} with {len(response.tools)} tools: {[tool.name for tool in response.tools]}"
         )
 
     def _sanitize_tool_name(self, name: str) -> str:

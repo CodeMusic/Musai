@@ -1,5 +1,6 @@
 import asyncio
 import json
+import re
 from typing import Any, List, Optional, Union
 
 from pydantic import Field
@@ -8,9 +9,9 @@ from app.agent.react import ReActAgent
 from app.exceptions import TokenLimitExceeded
 from app.logger import logger
 from app.prompt.toolcall import NEXT_STEP_PROMPT, SYSTEM_PROMPT
-from app.schema import TOOL_CHOICE_TYPE, AgentState, Message, ToolCall, ToolChoice
+from app.schema import (TOOL_CHOICE_TYPE, AgentState, Function, Message,
+                        ToolCall, ToolChoice)
 from app.tool import CreateChatCompletion, Terminate, ToolCollection
-
 
 TOOL_CALL_REQUIRED = "Tool calls required but none provided"
 
@@ -31,10 +32,205 @@ class ToolCallAgent(ReActAgent):
     special_tool_names: List[str] = Field(default_factory=lambda: [Terminate().name])
 
     tool_calls: List[ToolCall] = Field(default_factory=list)
-    _current_base64_image: Optional[str] = None
+    current_base64_image: Optional[str] = None
+
+    # Loop detection for preventing infinite retries
+    recent_tool_results: List[dict] = Field(default_factory=list)
+    max_result_history: int = Field(default=10)
+    loop_detection_threshold: int = Field(default=2)
+
+    # Enhanced monitoring and backoff
+    tool_failure_counts: dict = Field(default_factory=dict)  # Track failures per tool
+    max_tool_failures: int = Field(
+        default=5
+    )  # Max failures before suggesting alternatives
 
     max_steps: int = 30
     max_observe: Optional[Union[int, bool]] = None
+
+    def _is_similar_result(self, result1: str, result2: str) -> bool:
+        """Check if two results are substantially similar (indicating a loop)."""
+        if not result1 or not result2:
+            return False
+
+        # Remove timestamps and variable content for comparison
+        import re
+
+        clean1 = re.sub(r"\d{4}-\d{2}-\d{2}.*?\|", "", result1)
+        clean1 = re.sub(r"step \d+", "step X", clean1.lower())
+        clean2 = re.sub(r"\d{4}-\d{2}-\d{2}.*?\|", "", result2)
+        clean2 = re.sub(r"step \d+", "step X", clean2.lower())
+
+        # For very short results (like single words), require exact match
+        if len(clean1) < 50 or len(clean2) < 50:
+            return clean1.strip() == clean2.strip()
+
+        # For longer results, check similarity ratio
+        from difflib import SequenceMatcher
+
+        similarity = SequenceMatcher(None, clean1, clean2).ratio()
+        return similarity > 0.85  # 85% similarity threshold
+
+    def _detect_tool_loop(self, tool_name: str, tool_args: dict, result: str) -> bool:
+        """Detect if we're in a tool execution loop."""
+        current_call = {
+            "tool_name": tool_name,
+            "tool_args": tool_args,
+            "result": str(result),
+            "step": self.current_step,
+        }
+
+        # Check for similar recent calls
+        similar_count = 0
+        for past_call in self.recent_tool_results[-5:]:  # Check last 5 calls
+            if (
+                past_call["tool_name"] == tool_name
+                and past_call["tool_args"] == tool_args
+                and self._is_similar_result(past_call["result"], current_call["result"])
+            ):
+                similar_count += 1
+
+        # Add current call to history
+        self.recent_tool_results.append(current_call)
+
+        # Keep history size manageable
+        if len(self.recent_tool_results) > self.max_result_history:
+            self.recent_tool_results.pop(0)
+
+        is_loop = similar_count >= self.loop_detection_threshold
+        if is_loop:
+            logger.warning(
+                f"🔄 LOOP DETECTED: Tool '{tool_name}' has returned similar results {similar_count + 1} times"
+            )
+        return is_loop
+
+    def _handle_detected_loop(self, tool_name: str, result: str) -> str:
+        """Handle when a tool loop is detected."""
+        logger.error(
+            f"🚨 CRITICAL: Loop detected for tool '{tool_name}' - BLOCKING RETRY to prevent infinite loop"
+        )
+
+        # Specific handling for browser_use loops
+        if tool_name == "browser_use":
+            if "extract_content" in str(result):
+                return (
+                    f"🚨 BROWSER EXTRACTION LOOP BLOCKED: Page content extraction failed {self.loop_detection_threshold} times. "
+                    f"**STOP IMMEDIATELY** - Do not retry the same extraction. Instead:\n"
+                    f"1. 🔍 Use web_search to find the information on different sites\n"
+                    f"2. 🌐 Try completely different URLs (not just variations)\n"
+                    f"3. 📝 Try a broader extraction goal like 'get all visible text'\n"
+                    f"4. 🔄 Use a different approach entirely (different tool)\n\n"
+                    f"BLOCKED RESULT: {result}"
+                )
+            elif "go_to_url" in str(
+                result
+            ) or "Page loaded but contains error content" in str(result):
+                return (
+                    f"🚨 BROWSER NAVIGATION LOOP BLOCKED: URL navigation failed {self.loop_detection_threshold} times. "
+                    f"**STOP TRYING THIS URL** - The website is blocking access or doesn't have the content. Instead:\n"
+                    f"1. 🔍 **USE WEB_SEARCH IMMEDIATELY** - Search for the information on Google\n"
+                    f"2. 🌐 Try completely different websites (not BRP/SeaDoo official sites)\n"
+                    f"3. 📰 Look for news articles, reviews, or dealer sites with the information\n"
+                    f"4. 🛍️ Try marketplace sites like AutoTrader, Kijiji, or boat dealers\n"
+                    f"5. 💡 Search for '{url if 'url' in locals() else 'SeaDoo Spark'}' specifications on different sites\n\n"
+                    f"BLOCKED RESULT: {result}"
+                )
+            else:
+                return (
+                    f"🚨 BROWSER TOOL LOOP BLOCKED: Browser action failed {self.loop_detection_threshold} times. "
+                    f"**STOP RETRYING** - Switch to web_search or different approach immediately.\n\n"
+                    f"BLOCKED RESULT: {result}"
+                )
+
+        # Generic loop handling
+        return (
+            f"⚠️ Tool loop detected: '{tool_name}' returned similar results {self.loop_detection_threshold} times. "
+            f"**CRITICAL**: Do not retry the same action. Try alternative approaches instead.\n\n"
+            f"Last result was: {result}"
+        )
+
+    def _parse_tool_calls_from_content(self, content: str) -> List[ToolCall]:
+        """
+        Parse tool calls from content when LLM returns tool call info as text.
+        This is a fallback for when the model doesn't properly format tool calls.
+        """
+        tool_calls = []
+
+        try:
+            # First try to parse the entire content as JSON if it looks like a single tool call
+            content_stripped = content.strip()
+            if content_stripped.startswith("{") and content_stripped.endswith("}"):
+                try:
+                    tool_data = json.loads(content_stripped)
+                    if "name" in tool_data and "arguments" in tool_data:
+                        # Create a proper ToolCall object
+                        function = Function(
+                            name=tool_data["name"],
+                            arguments=(
+                                json.dumps(tool_data["arguments"])
+                                if isinstance(tool_data["arguments"], dict)
+                                else tool_data["arguments"]
+                            ),
+                        )
+                        tool_call = ToolCall(
+                            id="call_0",
+                            function=function,
+                            type="function",
+                        )
+
+                        # Verify the tool exists
+                        if tool_data["name"] in self.available_tools.tool_map:
+                            tool_calls.append(tool_call)
+                            logger.info(
+                                f"📝 Parsed single tool call from content: {tool_data['name']}"
+                            )
+                            return tool_calls
+                except json.JSONDecodeError:
+                    pass
+
+            # Try to find JSON-like structures in the content using improved regex
+            # This handles the format from the logs: {"name": "...", "arguments": {...}}
+            json_pattern = (
+                r'\{\s*"name"\s*:\s*"[^"]+"\s*,\s*"arguments"\s*:\s*\{[^}]*\}\s*\}'
+            )
+            matches = re.findall(json_pattern, content, re.DOTALL)
+
+            for i, match in enumerate(matches):
+                try:
+                    # Parse the JSON-like structure
+                    tool_data = json.loads(match)
+
+                    # Check if it has the expected structure
+                    if "name" in tool_data and "arguments" in tool_data:
+                        # Create a proper ToolCall object
+                        function = Function(
+                            name=tool_data["name"],
+                            arguments=(
+                                json.dumps(tool_data["arguments"])
+                                if isinstance(tool_data["arguments"], dict)
+                                else tool_data["arguments"]
+                            ),
+                        )
+                        tool_call = ToolCall(
+                            id=f"call_{i}",
+                            function=function,
+                            type="function",
+                        )
+
+                        # Verify the tool exists
+                        if tool_data["name"] in self.available_tools.tool_map:
+                            tool_calls.append(tool_call)
+                            logger.info(
+                                f"📝 Parsed tool call from content: {tool_data['name']}"
+                            )
+
+                except json.JSONDecodeError:
+                    continue
+
+        except Exception as e:
+            logger.debug(f"Failed to parse tool calls from content: {e}")
+
+        return tool_calls
 
     async def think(self) -> bool:
         """Process current state and decide next actions using tools"""
@@ -76,6 +272,15 @@ class ToolCallAgent(ReActAgent):
             response.tool_calls if response and response.tool_calls else []
         )
         content = response.content if response and response.content else ""
+
+        # Fallback: If no tool_calls but content contains tool call information
+        if not tool_calls and content and self.tool_choices != ToolChoice.NONE:
+            parsed_tool_calls = self._parse_tool_calls_from_content(content)
+            if parsed_tool_calls:
+                self.tool_calls = tool_calls = parsed_tool_calls
+                logger.info(
+                    f"🔧 Applied fallback tool call parsing, found {len(tool_calls)} tools"
+                )
 
         # Log response info
         logger.info(f"✨ {self.name}'s thoughts: {content}")
@@ -140,7 +345,7 @@ class ToolCallAgent(ReActAgent):
         results = []
         for command in self.tool_calls:
             # Reset base64_image for each tool call
-            self._current_base64_image = None
+            self.current_base64_image = None
 
             result = await self.execute_tool(command)
 
@@ -148,7 +353,7 @@ class ToolCallAgent(ReActAgent):
                 result = result[: self.max_observe]
 
             logger.info(
-                f"🎯 Tool '{command.function.name}' completed its mission! Result: {result}"
+                f"✅ Tool '{command.function.name}' completed successfully! Result length: {len(str(result))} chars"
             )
 
             # Add tool response to memory
@@ -156,7 +361,7 @@ class ToolCallAgent(ReActAgent):
                 content=result,
                 tool_call_id=command.id,
                 name=command.function.name,
-                base64_image=self._current_base64_image,
+                base64_image=self.current_base64_image,
             )
             self.memory.add_message(tool_msg)
             results.append(result)
@@ -176,35 +381,62 @@ class ToolCallAgent(ReActAgent):
             # Parse arguments
             args = json.loads(command.function.arguments or "{}")
 
-            # Execute the tool
-            logger.info(f"🔧 Activating tool: '{name}'...")
-            result = await self.available_tools.execute(name=name, tool_input=args)
+            # Execute the tool with timeout protection
+            logger.info(f"🔧 Activating tool: '{name}' with args: {args}")
 
-            # Handle special tools
-            await self._handle_special_tool(name=name, result=result)
+            # Track tool usage for monitoring
+            if name not in self.tool_failure_counts:
+                self.tool_failure_counts[name] = 0
 
-            # Check if result is a ToolResult with base64_image
-            if hasattr(result, "base64_image") and result.base64_image:
-                # Store the base64_image for later use in tool_message
-                self._current_base64_image = result.base64_image
+            # Add timeout protection for tool execution
+            try:
+                logger.info(f"⏱️ Executing tool '{name}'... (timeout: 300 seconds)")
+                result = await asyncio.wait_for(
+                    self.available_tools.execute(name=name, tool_input=args),
+                    timeout=300,  # 5 minute timeout for tool execution
+                )
+                logger.info(f"✅ Tool '{name}' completed successfully")
+            except asyncio.TimeoutError:
+                error_msg = f"⏰ Tool '{name}' timed out after 300 seconds"
+                logger.error(error_msg)
+                return f"Error: {error_msg}"
 
             # Format result for display (standard case)
-            observation = (
-                f"Observed output of cmd `{name}` executed:\n{str(result)}"
-                if result
-                else f"Cmd `{name}` completed with no output"
-            )
+            if name == "planning":
+                # Enhanced logging for planning tool
+                logger.info(f"📋 PLANNING TOOL RESULT:\n{str(result)}")
+                observation = (
+                    f"📋 PLANNING RESULT:\n{str(result)}"
+                    if result
+                    else f"Cmd `{name}` completed with no output"
+                )
+            else:
+                observation = (
+                    f"Observed output of cmd `{name}` executed:\n{str(result)}"
+                    if result
+                    else f"Cmd `{name}` completed with no output"
+                )
+
+            # **FAILURE TRACKING**: Monitor tool failures for exponential backoff
+            if hasattr(result, "error") and result.error:
+                self.tool_failure_counts[name] += 1
+                logger.warning(
+                    f"⚠️ Tool '{name}' failed (failure count: {self.tool_failure_counts[name]}): {result.error}"
+                )
+            else:
+                # Reset failure count on success
+                self.tool_failure_counts[name] = 0
 
             return observation
-        except json.JSONDecodeError:
-            error_msg = f"Error parsing arguments for {name}: Invalid JSON format"
-            logger.error(
-                f"📝 Oops! The arguments for '{name}' don't make sense - invalid JSON, arguments:{command.function.arguments}"
-            )
-            return f"Error: {error_msg}"
+
         except Exception as e:
-            error_msg = f"⚠️ Tool '{name}' encountered a problem: {str(e)}"
-            logger.exception(error_msg)
+            # Track failures
+            if name not in self.tool_failure_counts:
+                self.tool_failure_counts[name] = 0
+            self.tool_failure_counts[name] += 1
+
+            error_msg = f"Tool '{name}' execution failed: {str(e)}"
+            logger.error(f"❌ {error_msg}")
             return f"Error: {error_msg}"
 
     async def _handle_special_tool(self, name: str, result: Any, **kwargs):

@@ -6,7 +6,7 @@ from app.agent.browser import BrowserContextHelper
 from app.agent.toolcall import ToolCallAgent
 from app.config import config
 from app.logger import logger
-from app.prompt.manus import NEXT_STEP_PROMPT, SYSTEM_PROMPT
+from app.prompt.musai import NEXT_STEP_PROMPT, SYSTEM_PROMPT
 from app.tool import Terminate, ToolCollection
 from app.tool.ask_human import AskHuman
 from app.tool.browser_use_tool import BrowserUseTool
@@ -15,11 +15,13 @@ from app.tool.python_execute import PythonExecute
 from app.tool.str_replace_editor import StrReplaceEditor
 
 
-class Manus(ToolCallAgent):
+class Musai(ToolCallAgent):
     """A versatile general-purpose agent with support for both local and MCP tools."""
 
-    name: str = "Manus"
-    description: str = "A versatile agent that can solve various tasks using multiple tools including MCP-based tools"
+    name: str = "Musai"
+    description: str = (
+        "A versatile agent that can solve various tasks using multiple tools including MCP-based tools"
+    )
 
     system_prompt: str = SYSTEM_PROMPT.format(directory=config.workspace_root)
     next_step_prompt: str = NEXT_STEP_PROMPT
@@ -51,14 +53,14 @@ class Manus(ToolCallAgent):
     _initialized: bool = False
 
     @model_validator(mode="after")
-    def initialize_helper(self) -> "Manus":
+    def initialize_helper(self) -> "Musai":
         """Initialize basic components synchronously."""
         self.browser_context_helper = BrowserContextHelper(self)
         return self
 
     @classmethod
-    async def create(cls, **kwargs) -> "Manus":
-        """Factory method to create and properly initialize a Manus instance."""
+    async def create(cls, **kwargs) -> "Musai":
+        """Factory method to create and properly initialize a Musai instance."""
         instance = cls(**kwargs)
         await instance.initialize_mcp_servers()
         instance._initialized = True
@@ -66,13 +68,25 @@ class Manus(ToolCallAgent):
 
     async def initialize_mcp_servers(self) -> None:
         """Initialize connections to configured MCP servers."""
+        if not config.mcp_config.servers:
+            logger.info("ℹ️ No MCP servers configured - skipping MCP initialization")
+            return
+
+        logger.info(
+            f"🔌 Initializing MCP connections to {len(config.mcp_config.servers)} server(s)..."
+        )
+
         for server_id, server_config in config.mcp_config.servers.items():
             try:
+                logger.info(
+                    f"🔗 Connecting to MCP server '{server_id}' ({server_config.type})..."
+                )
+
                 if server_config.type == "sse":
                     if server_config.url:
                         await self.connect_mcp_server(server_config.url, server_id)
                         logger.info(
-                            f"Connected to MCP server {server_id} at {server_config.url}"
+                            f"✅ Connected to MCP server {server_id} at {server_config.url}"
                         )
                 elif server_config.type == "stdio":
                     if server_config.command:
@@ -83,10 +97,12 @@ class Manus(ToolCallAgent):
                             stdio_args=server_config.args,
                         )
                         logger.info(
-                            f"Connected to MCP server {server_id} using command {server_config.command}"
+                            f"✅ Connected to MCP server {server_id} using command {server_config.command}"
                         )
             except Exception as e:
-                logger.error(f"Failed to connect to MCP server {server_id}: {e}")
+                logger.error(f"❌ Failed to connect to MCP server {server_id}: {e}")
+
+        logger.info("✅ MCP initialization completed")
 
     async def connect_mcp_server(
         self,
@@ -129,7 +145,7 @@ class Manus(ToolCallAgent):
         self.available_tools.add_tools(*self.mcp_clients.tools)
 
     async def cleanup(self):
-        """Clean up Manus agent resources."""
+        """Clean up Musai agent resources."""
         if self.browser_context_helper:
             await self.browser_context_helper.cleanup_browser()
         # Disconnect from all MCP servers only if we were initialized

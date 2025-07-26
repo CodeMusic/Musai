@@ -5,7 +5,6 @@ from typing import Optional
 from app.exceptions import ToolError
 from app.tool.base import BaseTool, CLIResult
 
-
 _BASH_DESCRIPTION = """Execute a bash command in the terminal.
 * Long running commands: For commands that may run indefinitely, it should be run in the background and the output should be redirected to a file, e.g. command = `python3 app.py > server.log 2>&1 &`.
 * Interactive: If a bash command returns exit code `-1`, this means the process is not yet finished. The assistant must then send a second call to terminal with an empty `command` (which will retrieve any additional logs), or it can send additional text (set `command` to the text) to STDIN of the running process, or it can send command=`ctrl+c` to interrupt the process.
@@ -129,25 +128,25 @@ class Bash(BaseTool):
         "required": ["command"],
     }
 
-    _session: Optional[_BashSession] = None
+    session: Optional[_BashSession] = None
 
     async def execute(
         self, command: str | None = None, restart: bool = False, **kwargs
     ) -> CLIResult:
         if restart:
-            if self._session:
-                self._session.stop()
-            self._session = _BashSession()
-            await self._session.start()
+            if self.session:
+                self.session.stop()
+            self.session = _BashSession()
+            await self.session.start()
 
             return CLIResult(system="tool has been restarted.")
 
-        if self._session is None:
-            self._session = _BashSession()
-            await self._session.start()
+        if self.session is None:
+            self.session = _BashSession()
+            await self.session.start()
 
         if command is not None:
-            return await self._session.run(command)
+            return await self.session.run(command)
 
         raise ToolError("no command provided.")
 

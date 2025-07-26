@@ -1,25 +1,21 @@
-import httpx
 import argparse
+import asyncio
+import logging
+from typing import Optional
 
+import httpx
 from a2a.server.apps import A2AStarletteApplication
 from a2a.server.request_handlers import DefaultRequestHandler
-from a2a.server.tasks import InMemoryTaskStore, InMemoryPushNotifier
-from a2a.types import (
-    AgentCapabilities,
-    AgentCard,
-    AgentSkill,
-)
+from a2a.server.tasks import InMemoryPushNotifier, InMemoryTaskStore
+from a2a.types import AgentCapabilities, AgentCard, AgentSkill
+from dotenv import load_dotenv
 
-from .agent_executor import ManusExecutor
-
-from .agent import A2AManus
 from app.tool.browser_use_tool import _BROWSER_DESCRIPTION
 from app.tool.str_replace_editor import _STR_REPLACE_EDITOR_DESCRIPTION
 from app.tool.terminate import _TERMINATE_DESCRIPTION
-import logging
-from dotenv import load_dotenv
-import asyncio
-from typing import Optional
+
+from .agent import A2AMusai
+from .agent_executor import MusaiExecutor
 
 load_dotenv()
 
@@ -28,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 async def main(host: str = "localhost", port: int = 10000):
-    """Starts the Manus Agent server."""
+    """Starts the Musai Agent server."""
     try:
         capabilities = AgentCapabilities(streaming=False, pushNotifications=True)
         skills = [
@@ -73,20 +69,20 @@ async def main(host: str = "localhost", port: int = 10000):
         ]
 
         agent_card = AgentCard(
-            name="Manus Agent",
+            name="Musai Agent",
             description="A versatile agent that can solve various tasks using multiple tools including MCP-based tools",
             url=f"http://{host}:{port}/",
             version="1.0.0",
-            defaultInputModes=A2AManus.SUPPORTED_CONTENT_TYPES,
-            defaultOutputModes=A2AManus.SUPPORTED_CONTENT_TYPES,
+            defaultInputModes=A2AMusai.SUPPORTED_CONTENT_TYPES,
+            defaultOutputModes=A2AMusai.SUPPORTED_CONTENT_TYPES,
             capabilities=capabilities,
             skills=skills,
         )
 
         httpx_client = httpx.AsyncClient()
         request_handler = DefaultRequestHandler(
-            agent_executor=ManusExecutor(
-                agent_factory=lambda: A2AManus.create(max_steps=3)
+            agent_executor=MusaiExecutor(
+                agent_factory=lambda: A2AMusai.create(max_steps=3)
             ),
             task_store=InMemoryTaskStore(),
             push_notifier=InMemoryPushNotifier(httpx_client),
@@ -119,7 +115,7 @@ def run_server(host: Optional[str] = "localhost", port: Optional[int] = 10000):
 
 if __name__ == "__main__":
     # Parse command line arguments for host and port, with default values
-    parser = argparse.ArgumentParser(description="Start Manus Agent service")
+    parser = argparse.ArgumentParser(description="Start Musai Agent service")
     parser.add_argument(
         "--host",
         type=str,

@@ -4,24 +4,24 @@
 
 English | [中文](README_zh.md) | [한국어](README_ko.md) | [日本語](README_ja.md)
 
-[![GitHub stars](https://img.shields.io/github/stars/FoundationAgents/OpenManus?style=social)](https://github.com/FoundationAgents/OpenManus/stargazers)
+[![GitHub stars](https://img.shields.io/github/stars/FoundationAgents/Musai?style=social)](https://github.com/FoundationAgents/Musai/stargazers)
 &ensp;
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) &ensp;
 [![Discord Follow](https://dcbadge.vercel.app/api/server/DYn29wFk9z?style=flat)](https://discord.gg/DYn29wFk9z)
-[![Demo](https://img.shields.io/badge/Demo-Hugging%20Face-yellow)](https://huggingface.co/spaces/lyh-917/OpenManusDemo)
+[![Demo](https://img.shields.io/badge/Demo-Hugging%20Face-yellow)](https://huggingface.co/spaces/lyh-917/MusaiDemo)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15186407.svg)](https://doi.org/10.5281/zenodo.15186407)
 
-# 👋 OpenManus
+# 👋 Musai
 
-Manus is incredible, but OpenManus can achieve any idea without an *Invite Code* 🛫!
+Musai is incredible, but Musai can achieve any idea without an *Invite Code* 🛫!
 
 Our team members [@Xinbin Liang](https://github.com/mannaandpoem) and [@Jinyu Xiang](https://github.com/XiangJinyu) (core authors), along with [@Zhaoyang Yu](https://github.com/MoshiQAQ), [@Jiayi Zhang](https://github.com/didiforgithub), and [@Sirui Hong](https://github.com/stellaHSR), we are from [@MetaGPT](https://github.com/geekan/MetaGPT). The prototype is launched within 3 hours and we are keeping building!
 
 It's a simple implementation, so we welcome any suggestions, contributions, and feedback!
 
-Enjoy your own agent with OpenManus!
+Enjoy your own agent with Musai!
 
-We're also excited to introduce [OpenManus-RL](https://github.com/OpenManus/OpenManus-RL), an open-source project dedicated to reinforcement learning (RL)- based (such as GRPO) tuning methods for LLM agents, developed collaboratively by researchers from UIUC and OpenManus.
+We're also excited to introduce [Musai-RL](https://github.com/Musai/Musai-RL), an open-source project dedicated to reinforcement learning (RL)- based (such as GRPO) tuning methods for LLM agents, developed collaboratively by researchers from UIUC and Musai.
 
 ## Project Demo
 
@@ -36,15 +36,15 @@ We provide two installation methods. Method 2 (using uv) is recommended for fast
 1. Create a new conda environment:
 
 ```bash
-conda create -n open_manus python=3.12
-conda activate open_manus
+conda create -n open_musai python=3.12
+conda activate open_musai
 ```
 
 2. Clone the repository:
 
 ```bash
-git clone https://github.com/FoundationAgents/OpenManus.git
-cd OpenManus
+git clone https://github.com/FoundationAgents/Musai.git
+cd Musai
 ```
 
 3. Install dependencies:
@@ -64,8 +64,8 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 2. Clone the repository:
 
 ```bash
-git clone https://github.com/FoundationAgents/OpenManus.git
-cd OpenManus
+git clone https://github.com/FoundationAgents/Musai.git
+cd Musai
 ```
 
 3. Create a new virtual environment and activate it:
@@ -90,7 +90,7 @@ playwright install
 
 ## Configuration
 
-OpenManus requires configuration for the LLM APIs it uses. Follow these steps to set up your configuration:
+Musai requires configuration for the LLM APIs it uses. Follow these steps to set up your configuration:
 
 1. Create a `config.toml` file in the `config` directory (you can copy from the example):
 
@@ -118,7 +118,7 @@ api_key = "sk-..."  # Replace with your actual API key
 
 ## Quick Start
 
-One line for run OpenManus:
+One line for run Musai:
 
 ```bash
 python main.py
@@ -139,7 +139,7 @@ python run_flow.py
 
 ### Custom Adding Multiple Agents
 
-Currently, besides the general OpenManus Agent, we have also integrated the DataAnalysis Agent, which is suitable for data analysis and data visualization tasks. You can add this agent to `run_flow` in `config.toml`.
+Currently, besides the general Musai Agent, we have also integrated the DataAnalysis Agent, which is suitable for data analysis and data visualization tasks. You can add this agent to `run_flow` in `config.toml`.
 
 ```toml
 # Optional configuration for run-flow
@@ -160,15 +160,15 @@ Or contact @mannaandpoem via 📧email: mannaandpoem@gmail.com
 Join our networking group on Feishu and share your experience with other developers!
 
 <div align="center" style="display: flex; gap: 20px;">
-    <img src="assets/community_group.jpg" alt="OpenManus 交流群" width="300" />
+    <img src="assets/community_group.jpg" alt="Musai 交流群" width="300" />
 </div>
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=FoundationAgents/OpenManus&type=Date)](https://star-history.com/#FoundationAgents/OpenManus&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=FoundationAgents/Musai&type=Date)](https://star-history.com/#FoundationAgents/Musai&Date)
 
 ## Sponsors
-Thanks to [PPIO](https://ppinfra.com/user/register?invited_by=OCPKCN&utm_source=github_openmanus&utm_medium=github_readme&utm_campaign=link) for computing source support.
+Thanks to [PPIO](https://ppinfra.com/user/register?invited_by=OCPKCN&utm_source=github_musai&utm_medium=github_readme&utm_campaign=link) for computing source support.
 > PPIO: The most affordable and easily-integrated MaaS and GPU cloud solution.
 
 
@@ -181,13 +181,13 @@ Additionally, we are grateful to [AAAJ](https://github.com/metauto-ai/agent-as-a
 
 We also thank stepfun(阶跃星辰) for supporting our Hugging Face demo space.
 
-OpenManus is built by contributors from MetaGPT. Huge thanks to this agent community!
+Musai is built by contributors from MetaGPT. Huge thanks to this agent community!
 
 ## Cite
 ```bibtex
-@misc{openmanus2025,
+@misc{musai2025,
   author = {Xinbin Liang and Jinyu Xiang and Zhaoyang Yu and Jiayi Zhang and Sirui Hong and Sheng Fan and Xiao Tang},
-  title = {OpenManus: An open-source framework for building general AI agents},
+  title = {Musai: An open-source framework for building general AI agents},
   year = {2025},
   publisher = {Zenodo},
   doi = {10.5281/zenodo.15186407},

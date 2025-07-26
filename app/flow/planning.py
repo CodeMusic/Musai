@@ -99,6 +99,9 @@ class PlanningFlow(BaseFlow):
 
             # Create initial plan if input provided
             if input_text:
+                logger.info(
+                    f"🎯 Creating execution plan for task: {input_text[:100]}{'...' if len(input_text) > 100 else ''}"
+                )
                 await self._create_initial_plan(input_text)
 
                 # Verify plan was created successfully
@@ -107,6 +110,14 @@ class PlanningFlow(BaseFlow):
                         f"Plan creation failed. Plan ID {self.active_plan_id} not found in planning tool."
                     )
                     return f"Failed to create plan for: {input_text}"
+
+                # Log initial plan status
+                if self.active_plan_id in self.planning_tool.plans:
+                    plan_data = self.planning_tool.plans[self.active_plan_id]
+                    total_steps = len(plan_data.get("steps", []))
+                    logger.info(
+                        f"📋 Plan created successfully with {total_steps} steps"
+                    )
 
             result = ""
             while True:
@@ -123,6 +134,22 @@ class PlanningFlow(BaseFlow):
                 executor = self.get_executor(step_type)
                 step_result = await self._execute_step(executor, step_info)
                 result += step_result + "\n"
+
+                # Log plan progress after step completion
+                if self.active_plan_id in self.planning_tool.plans:
+                    plan_data = self.planning_tool.plans[self.active_plan_id]
+                    total_steps = len(plan_data.get("steps", []))
+                    completed_steps = sum(
+                        1
+                        for status in plan_data.get("step_statuses", [])
+                        if status == "completed"
+                    )
+                    progress_percentage = (
+                        (completed_steps / total_steps * 100) if total_steps > 0 else 0
+                    )
+                    logger.info(
+                        f"📊 Plan Progress: {completed_steps}/{total_steps} steps completed ({progress_percentage:.1f}%)"
+                    )
 
                 # Check if agent wants to terminate
                 if hasattr(executor, "state") and executor.state == AgentState.FINISHED:
@@ -279,6 +306,17 @@ class PlanningFlow(BaseFlow):
         # Prepare context for the agent with current plan status
         plan_status = await self._get_plan_text()
         step_text = step_info.get("text", f"Step {self.current_step_index}")
+
+        # Enhanced logging for planning flow step execution
+        step_type = step_info.get("type", "general")
+        executor_name = executor.name
+        executor_desc = executor.description or "No description"
+
+        logger.info(
+            f"📋 Planning Flow - Executing step {self.current_step_index}: '{step_text}'"
+        )
+        logger.info(f"🤖 Using agent: [{executor_name}] {executor_desc}")
+        logger.info(f"🏷️ Step type: {step_type}")
 
         # Create a prompt for the agent to execute the current step
         step_prompt = f"""

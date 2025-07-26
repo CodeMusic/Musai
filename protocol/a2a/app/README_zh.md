@@ -1,9 +1,9 @@
-# Manus Agent with A2A Protocol
+# Musai Agent with A2A Protocol
 
-这是一个将A2A协议(https://google.github.io/A2A/#/documentation)与OpenManus结合的一个尝试,当前仅支持非流式
+这是一个将A2A协议(https://google.github.io/A2A/#/documentation)与Musai结合的一个尝试,当前仅支持非流式
 
 ## Prerequisites
-- conda activate 'Your OpenManus python env'
+- conda activate 'Your Musai python env'
 - pip install a2a-sdk==0.2.5
 
 
@@ -13,7 +13,7 @@
 1. 运行A2A Server:
 
    ```bash
-   cd OpenManus
+   cd Musai
    python -m protocol.a2a.app.main
    ```
 
@@ -27,7 +27,7 @@
    uv run .
    ```
 
-3. 通过A2A Client的命令行向OpenManus发送任务或者在A2A前端页面上将其注册
+3. 通过A2A Client的命令行向Musai发送任务或者在A2A前端页面上将其注册
 
 
 ## Examples
@@ -59,7 +59,7 @@ Response:
         "text/plain"
     ],
     "description": "A versatile agent that can solve various tasks using multiple tools including MCP-based tools",
-    "name": "Manus Agent",
+    "name": "Musai Agent",
     "skills": [
         {
             "description": "Executes Python code string. Note: Only print outputs are visible, function return values are not captured. Use print statements to see results.",

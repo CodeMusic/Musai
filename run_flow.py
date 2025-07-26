@@ -2,7 +2,7 @@ import asyncio
 import time
 
 from app.agent.data_analysis import DataAnalysis
-from app.agent.manus import Manus
+from app.agent.musai import Musai
 from app.config import config
 from app.flow.flow_factory import FlowFactory, FlowType
 from app.logger import logger
@@ -10,7 +10,7 @@ from app.logger import logger
 
 async def run_flow():
     agents = {
-        "manus": Manus(),
+        "musai": Musai(),
     }
     if config.run_flow_config.use_data_analysis_agent:
         agents["data_analysis"] = DataAnalysis()
@@ -21,11 +21,16 @@ async def run_flow():
             logger.warning("Empty prompt provided.")
             return
 
+        logger.info("🚀 Starting Planning Flow...")
+        logger.info(
+            "📋 Initialization may take 30-60 seconds for first run (browser + MCP setup)"
+        )
+
         flow = FlowFactory.create_flow(
             flow_type=FlowType.PLANNING,
             agents=agents,
         )
-        logger.warning("Processing your request...")
+        logger.info("🔄 Processing your request...")
 
         try:
             start_time = time.time()
@@ -34,7 +39,7 @@ async def run_flow():
                 timeout=3600,  # 60 minute timeout for the entire execution
             )
             elapsed_time = time.time() - start_time
-            logger.info(f"Request processed in {elapsed_time:.2f} seconds")
+            logger.info(f"✅ Request processed in {elapsed_time:.2f} seconds")
             logger.info(result)
         except asyncio.TimeoutError:
             logger.error("Request processing timed out after 1 hour")

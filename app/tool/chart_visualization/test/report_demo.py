@@ -2,13 +2,12 @@ import asyncio
 
 from app.agent.data_analysis import DataAnalysis
 
-
-# from app.agent.manus import Manus
+# from app.agent.musai import Musai
 
 
 async def main():
     agent = DataAnalysis()
-    # agent = Manus()
+    # agent = Musai()
     await agent.run(
         """Requirement:
 1. Analyze the following data and generate a graphical data report in HTML format. The final product should be a data report.

@@ -1,6 +1,6 @@
 JAPAN TRAVEL HANDBOOK - GUIDE TO VERSIONS
 
-Location: D:/OpenManus/
+Location: D:/Musai/
 
 1. DETAILED DIGITAL VERSION
 File: japan_travel_handbook.html

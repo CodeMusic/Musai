@@ -4,7 +4,6 @@ from typing import Dict, List, Literal, Optional
 from app.exceptions import ToolError
 from app.tool.base import BaseTool, ToolResult
 
-
 _PLANNING_TOOL_DESCRIPTION = """
 A planning tool that allows the agent to create and manage plans for solving complex tasks.
 The tool provides functionality for creating plans, updating plan steps, and tracking progress.
@@ -67,7 +66,7 @@ class PlanningTool(BaseTool):
     }
 
     plans: dict = {}  # Dictionary to store plans by plan_id
-    _current_plan_id: Optional[str] = None  # Track the current active plan
+    current_plan_id: Optional[str] = None  # Track the current active plan
 
     async def execute(
         self,
@@ -151,7 +150,7 @@ class PlanningTool(BaseTool):
         }
 
         self.plans[plan_id] = plan
-        self._current_plan_id = plan_id  # Set as active plan
+        self.current_plan_id = plan_id  # Set as active plan
 
         return ToolResult(
             output=f"Plan created successfully with ID: {plan_id}\n\n{self._format_plan(plan)}"
@@ -249,7 +248,7 @@ class PlanningTool(BaseTool):
         if plan_id not in self.plans:
             raise ToolError(f"No plan found with ID: {plan_id}")
 
-        self._current_plan_id = plan_id
+        self.current_plan_id = plan_id
         return ToolResult(
             output=f"Plan '{plan_id}' is now the active plan.\n\n{self._format_plan(self.plans[plan_id])}"
         )
@@ -314,8 +313,8 @@ class PlanningTool(BaseTool):
         del self.plans[plan_id]
 
         # If the deleted plan was the active plan, clear the active plan
-        if self._current_plan_id == plan_id:
-            self._current_plan_id = None
+        if self.current_plan_id == plan_id:
+            self.current_plan_id = None
 
         return ToolResult(output=f"Plan '{plan_id}' has been deleted.")
 

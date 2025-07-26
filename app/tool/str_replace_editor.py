@@ -15,7 +15,6 @@ from app.tool.file_operators import (
     SandboxFileOperator,
 )
 
-
 Command = Literal[
     "view",
     "create",
@@ -136,6 +135,12 @@ class StrReplaceEditor(BaseTool):
         elif command == "create":
             if file_text is None:
                 raise ToolError("Parameter `file_text` is required for command: create")
+
+            # Ensure parent directory exists before creating the file
+            parent_dir = Path(path).parent
+            if parent_dir != Path(path).root:  # Don't try to create root directory
+                await operator.create_directory(parent_dir, parents=True)
+
             await operator.write_file(path, file_text)
             self._file_history[path].append(file_text)
             result = ToolResult(output=f"File created successfully at: {path}")
@@ -316,6 +321,11 @@ class StrReplaceEditor(BaseTool):
         # Replace old_str with new_str
         new_file_content = file_content.replace(old_str, new_str)
 
+        # Ensure parent directory exists before writing the file
+        parent_dir = Path(path).parent
+        if parent_dir != Path(path).root:  # Don't try to create root directory
+            await operator.create_directory(parent_dir, parents=True)
+
         # Write the new content to the file
         await operator.write_file(path, new_file_content)
 
@@ -376,6 +386,11 @@ class StrReplaceEditor(BaseTool):
         # Join lines and write to file
         new_file_text = "\n".join(new_file_text_lines)
         snippet = "\n".join(snippet_lines)
+
+        # Ensure parent directory exists before writing the file
+        parent_dir = Path(path).parent
+        if parent_dir != Path(path).root:  # Don't try to create root directory
+            await operator.create_directory(parent_dir, parents=True)
 
         await operator.write_file(path, new_file_text)
         self._file_history[path].append(file_text)

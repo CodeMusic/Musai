@@ -30,7 +30,6 @@ from app.schema import (
     ToolChoice,
 )
 
-
 REASONING_MODELS = ["o1", "o3-mini"]
 MULTIMODAL_MODELS = [
     "gpt-4-vision-preview",
@@ -365,47 +364,30 @@ class LLM:
         stream: bool = True,
         temperature: Optional[float] = None,
     ) -> str:
-        """
-        Send a prompt to the LLM and get the response.
-
-        Args:
-            messages: List of conversation messages
-            system_msgs: Optional system messages to prepend
-            stream (bool): Whether to stream the response
-            temperature (float): Sampling temperature for the response
-
-        Returns:
-            str: The generated response
-
-        Raises:
-            TokenLimitExceeded: If token limits are exceeded
-            ValueError: If messages are invalid or response is empty
-            OpenAIError: If API call fails after retries
-            Exception: For unexpected errors
-        """
+        """Ask the LLM a question with retry logic."""
         try:
-            # Check if the model supports images
-            supports_images = self.model in MULTIMODAL_MODELS
-
-            # Format system and user messages with image support check
+            # Prepare messages
+            all_messages = []
             if system_msgs:
-                system_msgs = self.format_messages(system_msgs, supports_images)
-                messages = system_msgs + self.format_messages(messages, supports_images)
-            else:
-                messages = self.format_messages(messages, supports_images)
+                all_messages.extend(system_msgs)
+            all_messages.extend(messages)
 
-            # Calculate input token count
-            input_tokens = self.count_message_tokens(messages)
+            # Estimate input tokens
+            input_tokens = self.count_tokens(
+                " ".join([msg.content for msg in all_messages if msg.content])
+            )
 
-            # Check if token limits are exceeded
-            if not self.check_token_limit(input_tokens):
-                error_message = self.get_limit_error_message(input_tokens)
-                # Raise a special exception that won't be retried
-                raise TokenLimitExceeded(error_message)
+            # Check token limits
+            if self.max_input_tokens and input_tokens > self.max_input_tokens:
+                raise TokenLimitExceeded(
+                    f"Input tokens ({input_tokens}) exceed limit ({self.max_input_tokens})"
+                )
 
+            # Prepare parameters
             params = {
                 "model": self.model,
-                "messages": messages,
+                "messages": [msg.dict() for msg in all_messages],
+                "stream": stream,
             }
 
             if self.model in REASONING_MODELS:
@@ -416,21 +398,27 @@ class LLM:
                     temperature if temperature is not None else self.temperature
                 )
 
-            if not stream:
-                # Non-streaming request
-                response = await self.client.chat.completions.create(
-                    **params, stream=False
-                )
+            # Log the request
+            logger.info(
+                f"🤖 Sending request to {self.model}... (this may take 10-60 seconds)"
+            )
+            logger.debug(f"📝 Request parameters: {params}")
 
-                if not response.choices or not response.choices[0].message.content:
-                    raise ValueError("Empty or invalid response from LLM")
+            # Non-streaming request
+            if not stream:
+                response = await self.client.chat.completions.create(**params)
+                completion_text = response.choices[0].message.content or ""
+                completion_tokens = self.count_tokens(completion_text)
 
                 # Update token counts
                 self.update_token_count(
                     response.usage.prompt_tokens, response.usage.completion_tokens
                 )
 
-                return response.choices[0].message.content
+                logger.info(
+                    f"✅ Received response from {self.model} ({completion_tokens} tokens)"
+                )
+                return completion_text
 
             # Streaming request, For streaming, update estimated token count before making the request
             self.update_token_count(input_tokens)
@@ -453,7 +441,7 @@ class LLM:
             # estimate completion tokens for streaming response
             completion_tokens = self.count_tokens(completion_text)
             logger.info(
-                f"Estimated completion tokens for streaming response: {completion_tokens}"
+                f"✅ Received streaming response from {self.model} ({completion_tokens} tokens)"
             )
             self.total_completion_tokens += completion_tokens
 
@@ -537,9 +525,7 @@ class LLM:
             multimodal_content = (
                 [{"type": "text", "text": content}]
                 if isinstance(content, str)
-                else content
-                if isinstance(content, list)
-                else []
+                else content if isinstance(content, list) else []
             )
 
             # Add images to content
